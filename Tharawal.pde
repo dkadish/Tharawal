@@ -1,4 +1,4 @@
-import org.openkinect.freenect.*;
+import org.openkinect.freenect.*; //<>//
 import org.openkinect.freenect2.*;
 import org.openkinect.processing.*;
 Kinect2 kinect;
@@ -60,7 +60,7 @@ void draw() {
   foregroundFloat.fade(newImageFade);
 
   // Blend with new foreground
-  ghostlyImage.blend(foregroundFloat, 0, 0, width, height, 0, 0, width, height, BLEND); //<>//
+  ghostlyImage.blend(foregroundFloat, 0, 0, width, height, 0, 0, width, height, BLEND);
 
   switch( mode ){
     case GHOSTLY:
@@ -92,6 +92,7 @@ void draw() {
   ghostlyImage.fade(ghostlyImageFade);
 
   //println("Framerate: " + int(frameRate));
+  text((int)frameRate, width/2, height/2);
 }
 
 void setBackgroundDepth() {
