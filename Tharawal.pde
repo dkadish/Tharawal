@@ -1,3 +1,21 @@
+/* Code for Cheryl L'Hirondelle's piece for the Campbelltown Arts Centre in Australia 
+* 
+* USAGE:
+* 'b' - Re-calibrate background
+* 'd' - Adjust the depth threshold offset. Makes the thresholding more or less sensitive
+* 'f' - Adjust how much new images fade. Affects how quickly people appear in the scene.
+* 'g' - Adjust how much the ghostly composite fades. Affects how quickly people disappear from the scene.
+* 'm' - Toggle show/hide the cursor
+* 'r' - Show/hide the framerate
+*
+* '1' - Presentation mode (this is the default and what should be shown)
+* '2' - Depth image view (what the Kinect sees)
+* '3' - Colour depth image (the colour version of what the Kinect is seeing)
+* '4' - Foreground image (the thresholded version, excluding the background)
+* '5' - Ghostly image (the faded version of the image)
+*/
+
+
 import org.openkinect.freenect.*;
 import org.openkinect.freenect2.*;
 import org.openkinect.processing.*;
@@ -15,6 +33,8 @@ float depthThresholdOffset = 0.95;
 
 static int MIN_DEPTH_INIT=100;
 
+boolean showCursor = false, showFrameRate = false;
+
 public enum DisplayMode {
   GHOSTLY, DEPTH, COLOUR, FOREGROUND, FOREGROUND_FLOAT, FOREGROUND_FADE
 }
@@ -23,14 +43,16 @@ DisplayMode mode;
 
 void setup() {
   fullScreen();
-  //size(displayWidth, displayHeight);//size(512, 424);
+  noCursor();
+  //size(displayWidth, displayHeight);
+  //size(512, 424);
   kinect = new Kinect2(this);
   kinect.initDepth();
   kinect.initRegistered();
   kinect.initDevice();
   
   // Load the background
-  backgroundVideo = new Movie(this, "loop.mp4");
+  backgroundVideo = new Movie(this, "loop-1280x800.mp4");
   backgroundVideo.loop();
   
   backgroundDepth = new int[kinect.getRawDepth().length];
@@ -46,6 +68,10 @@ void setup() {
   ghostlyImage.fade(newImageFade);
   
   mode = DisplayMode.GHOSTLY;
+  
+  noSmooth(); // Speeds up drawing by not interpolating pixels
+  noLoop(); // Doesn't call draw automagically
+  frameRate(30); // Sets the maximum framerate to be 30 frames/sec
 }
 
 void draw() {
@@ -86,6 +112,10 @@ void draw() {
       background(255);
       image(ghostlyImage.toPImage(), 0, 0, width, height);
       break;
+  }
+  
+  if (showFrameRate){
+      text(frameRate, width/2, height/2);
   }
   
   // Fade the old image
@@ -131,6 +161,9 @@ PImage removeBackground(PImage img, int[] depth) {
   }
   //println( "Background Pixels " + bgPercent*100.0/img.pixels.length + "% " + newDepth /img.pixels.length + " " +  bgDepth /img.pixels.length + " " + (1.0+depthThresholdOffset) + " " + (1.0+depthThresholdOffset) * bgDepth /img.pixels.length);
   img.updatePixels();
+  
+  //img.resize(img.width, img.height);
+  
   return img;
 }
 
@@ -145,23 +178,38 @@ void keyPressed() {
     mode = DisplayMode.COLOUR;
   } else if ( key == '4' ){
     mode = DisplayMode.FOREGROUND; // Improper handling of objects in foreground
-  } else if ( key == '5' ){
+  } /*else if ( key == '5' ){
     mode = DisplayMode.FOREGROUND_FLOAT; //Still Colour
-  } else if ( key == '6' ){
+  }*/ else if ( key == '5' ){
     mode = DisplayMode.FOREGROUND_FADE; // Black
-  } else if ( key == 'd' ){ // Adjust the depth (): Zero -> No buffer, One -> Too much buffer
+  } else if ( key == 'd' ){ // Adjust the depth (0.95): Zero -> No buffer, One -> Too much buffer
     depthThresholdOffset = ((float)mouseY) / height;
     println("New depth threshold offset: " + depthThresholdOffset);
-  } else if ( key == 'f' ){ // Adjust the fade on new frames (0.1): 0 -> total fade, 1 -> no fade
+  } else if ( key == 'f' ){ // Adjust the fade on new frames (0.01): 0 -> total fade, 1 -> no fade
     newImageFade = ((float)mouseY) / height;
     println("New new image fade: " + newImageFade);
-  } else if ( key == 'g' ){ // Adjust the composite image fade (0.9): 0 -> total fade, 1 -> no fade
+  } else if ( key == 'g' ){ // Adjust the composite image fade (0.99): 0 -> total fade, 1 -> no fade
     ghostlyImageFade = ((float)mouseY) / height;
     println("New ghostly image fade: " + ghostlyImageFade);
+  } else if( key == 'm' ){
+    if( showCursor ){
+      noCursor();
+      showCursor = false;
+    } else {
+      cursor();
+      showCursor = true;
+    }
+  } else if( key == 'r' ){
+    if( showFrameRate ){
+      showFrameRate = false;
+    } else {
+      showFrameRate = true;
+    }
   }
 }
 
 // Called every time a new frame is available to read
 void movieEvent(Movie m) {
   m.read();
+  redraw();
 }
