@@ -42,7 +42,7 @@ public enum DisplayMode {
 DisplayMode mode;
 
 void setup() {
-  fullScreen();
+  fullScreen(FX2D);
   noCursor();
   //size(displayWidth, displayHeight);
   //size(512, 424);
@@ -70,8 +70,8 @@ void setup() {
   mode = DisplayMode.GHOSTLY;
   
   noSmooth(); // Speeds up drawing by not interpolating pixels
-  noLoop(); // Doesn't call draw automagically
-  frameRate(30); // Sets the maximum framerate to be 30 frames/sec
+  //noLoop(); // Doesn't call draw automagically
+  //frameRate(30); // Sets the maximum framerate to be 30 frames/sec
 }
 
 void draw() {
@@ -211,5 +211,5 @@ void keyPressed() {
 // Called every time a new frame is available to read
 void movieEvent(Movie m) {
   m.read();
-  redraw();
+  //redraw();
 }
